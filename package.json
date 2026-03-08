@@ -1,0 +1,15 @@
+{
+  "name": "anam-bactiar-chatbot",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "15.2.6",
+    "react": "^19",
+    "react-dom": "^19"
+  }
+}
