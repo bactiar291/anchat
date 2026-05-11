@@ -21,8 +21,17 @@ const STATUS_STEPS = [
   "Menghubungkan ke Groq...", "Mengkonfigurasi antarmuka...", "Siap digunakan ✓",
 ];
 
+const WELCOME_SEEN_KEY = "anchat-welcome-seen";
+
+const QUICK_PROMPTS = [
+  "Bantu rapikan jawaban ini supaya lebih singkat dan natural",
+  "Bantu debug kode saya langkah demi langkah",
+  "Buat ide konten yang beda dan profesional",
+  "Ringkas teks panjang jadi poin penting saja",
+];
+
 // ── Typewriter hook
-function useTypewriter(text, speed = 8) {
+function useTypewriter(text, speed = 10) {
   const [displayed, setDisplayed] = useState("");
   const [done, setDone] = useState(false);
   const ref = useRef(null);
@@ -30,8 +39,10 @@ function useTypewriter(text, speed = 8) {
     setDisplayed(""); setDone(false);
     if (!text) { setDone(true); return; }
     let i = 0;
+    const step = text.length > 2200 ? 14 : text.length > 1200 ? 7 : text.length > 500 ? 3 : 1;
     ref.current = setInterval(() => {
-      i++; setDisplayed(text.slice(0, i));
+      i = Math.min(i + step, text.length);
+      setDisplayed(text.slice(0, i));
       if (i >= text.length) { clearInterval(ref.current); setDone(true); }
     }, speed);
     return () => clearInterval(ref.current);
@@ -43,8 +54,8 @@ function useTypewriter(text, speed = 8) {
 function WelcomeScreen({ onDone }) {
   const [idx, setIdx] = useState(0);
   useEffect(() => {
-    const t = STATUS_STEPS.map((_, i) => setTimeout(() => setIdx(i), i * 1400));
-    const d = setTimeout(onDone, 8000);
+    const t = STATUS_STEPS.map((_, i) => setTimeout(() => setIdx(i), i * 620));
+    const d = setTimeout(onDone, 3600);
     return () => { t.forEach(clearTimeout); clearTimeout(d); };
   }, [onDone]);
   return (
@@ -148,6 +159,20 @@ function parseContent(content) {
   }
   if (lastIdx < content.length) parts.push({ type: "text", value: content.slice(lastIdx) });
   return parts;
+}
+
+function normalizeReplyText(content = "") {
+  return String(content)
+    .split(/(```[\s\S]*?```)/g)
+    .map((part) => {
+      if (part.startsWith("```")) return part;
+      return part
+        .replace(/^\s{0,3}#{1,6}\s+/gm, "")
+        .replace(/[ \t]+\n/g, "\n")
+        .replace(/\n{3,}/g, "\n\n");
+    })
+    .join("")
+    .trim();
 }
 
 // ── Message content renderer
@@ -376,6 +401,12 @@ export default function Page() {
   const textareaRef = useRef(null);
 
   useEffect(() => {
+    try {
+      if (sessionStorage.getItem(WELCOME_SEEN_KEY) === "1") setShowWelcome(false);
+    } catch {}
+  }, []);
+
+  useEffect(() => {
     fetch("/api/chat")
       .then(r => r.json())
       .then(d => {
@@ -390,8 +421,19 @@ export default function Page() {
   }, [messages, aiPhase]);
 
   const handleWelcomeDone = useCallback(() => {
+    try { sessionStorage.setItem(WELCOME_SEEN_KEY, "1"); } catch {}
     setWelFade(true);
     setTimeout(() => setShowWelcome(false), 800);
+  }, []);
+
+  const applyQuickPrompt = useCallback((prompt) => {
+    setInput(prompt);
+    requestAnimationFrame(() => {
+      if (!textareaRef.current) return;
+      textareaRef.current.focus();
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 160) + "px";
+    });
   }, []);
 
   // ── Kirim pesan ke API
@@ -424,7 +466,7 @@ export default function Page() {
       }
       if (data.error) return { error: `❌ ${data.error}` };
       if (data.model) setActiveModel({ label: data.model, tier: data.tier || 1 });
-      return { content: data.content, model: data.model, tier: data.tier };
+      return { content: normalizeReplyText(data.content), model: data.model, tier: data.tier };
 
     } catch (err) {
       setAiPhase(null);
@@ -566,9 +608,16 @@ export default function Page() {
 
               {messages.length === 0 && !aiPhase && (
                 <div className="chat-welcome">
-                  <div className="chat-welcome-icon">🤖</div>
-                  <h2>Halo! Ada yang bisa saya bantu?</h2>
-                  <p>Tanyakan apa saja — saya siap menjawab dengan teknologi AI Groq.</p>
+                  <div className="chat-welcome-icon">AB</div>
+                  <h2>Mulai dengan satu pertanyaan tajam.</h2>
+                  <p>Balasan dibuat ringkas, rapi, dan minim heading markdown berlebihan.</p>
+                  <div className="quick-prompts">
+                    {QUICK_PROMPTS.map((prompt) => (
+                      <button key={prompt} type="button" onClick={() => applyQuickPrompt(prompt)}>
+                        {prompt}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 

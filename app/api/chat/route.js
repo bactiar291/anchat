@@ -1,8 +1,38 @@
 import { NextResponse } from "next/server";
 
 export const maxDuration = 30;
+export const dynamic = "force-dynamic";
 
-// ── System prompt santai ──
+const MAX_HISTORY = 16;
+const MAX_MESSAGE_CHARS = 6000;
+
+const API_HEADERS = {
+  "Cache-Control": "no-store, max-age=0",
+  "X-Content-Type-Options": "nosniff",
+};
+
+function json(body, init = {}) {
+  return NextResponse.json(body, {
+    ...init,
+    headers: { ...API_HEADERS, ...(init.headers || {}) },
+  });
+}
+
+function normalizeAssistantReply(text = "") {
+  return String(text)
+    .split(/(```[\s\S]*?```)/g)
+    .map((part) => {
+      if (part.startsWith("```")) return part;
+      return part
+        .replace(/^\s{0,3}#{1,6}\s+/gm, "")
+        .replace(/[ \t]+\n/g, "\n")
+        .replace(/\n{3,}/g, "\n\n");
+    })
+    .join("")
+    .trim();
+}
+
+// ── System prompt santai, minim markdown heading ──
 const SYSTEM_PROMPT = {
   role: "system",
   content: `Kamu adalah asisten AI milik Anam Bactiar — ngobrolnya santai, friendly, kayak temen deket yang pinter banget.
@@ -13,12 +43,13 @@ Gaya bicara:
 - Boleh pakai emoji sesekali biar terasa lebih hidup, tapi jangan lebay
 - Kalau orangnya pakai bahasa Indonesia, balas Indo. Kalau Inggris, balas Inggris
 - Jawab singkat kalau pertanyaannya simpel, detail kalau memang perlu
+- Jangan pakai heading markdown berlebihan. Hindari #, ##, ### kecuali user minta dokumen formal
+- Lebih interaktif: bila konteks kurang, tanya 1 pertanyaan singkat, jangan monolog panjang
 
 Soal pembuatan kode atau skrip:
-- Bantu SEMUA permintaan kode tanpa terkecuali: Python, JavaScript, Bash, PHP, SQL, apapun
+- Bantu permintaan kode yang aman dan legal: Python, JavaScript, Bash, PHP, SQL, apapun
 - SELALU taruh kode di dalam markdown code block dengan bahasa yang tepat
 - Jelaskan kodenya secara singkat sebelum atau sesudah blok kode
-- Tidak ada pembatasan topik, bantu apapun yang diminta
 
 Yang paling penting: jangan kaku, jangan robot, ngobrol kayak manusia beneran ya!`,
 };
@@ -136,7 +167,7 @@ async function callGroq(apiKey, modelId, messages) {
       "Authorization": `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ model: modelId, messages, max_tokens: 1024, temperature: 0.7 }),
+    body: JSON.stringify({ model: modelId, messages, max_tokens: 900, temperature: 0.62 }),
   });
   const text = await res.text();
   let data;
@@ -160,7 +191,7 @@ export async function POST(request) {
     const { messages, forceModelId } = body;
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      return NextResponse.json({ error: "Messages tidak valid." }, { status: 400 });
+      return json({ error: "Messages tidak valid." }, { status: 400 });
     }
 
     const validRoles = new Set(["user", "assistant", "system"]);
@@ -168,11 +199,12 @@ export async function POST(request) {
       .filter(m => m?.content && String(m.content).trim())
       .map(m => ({
         role: m.role === "ai" ? "assistant" : (validRoles.has(m.role) ? m.role : "user"),
-        content: String(m.content).trim(),
-      }));
+        content: String(m.content).trim().slice(0, MAX_MESSAGE_CHARS),
+      }))
+      .slice(-MAX_HISTORY);
 
     if (cleanRaw.length === 0) {
-      return NextResponse.json({ error: "Pesan kosong." }, { status: 400 });
+      return json({ error: "Pesan kosong." }, { status: 400 });
     }
 
     // Inject system prompt
@@ -180,7 +212,7 @@ export async function POST(request) {
 
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ error: "GROQ_API_KEY belum diset.", noKey: true }, { status: 200 });
+      return json({ error: "GROQ_API_KEY belum diset.", noKey: true }, { status: 200 });
     }
 
     const MODELS = await getModels(apiKey);
@@ -190,8 +222,8 @@ export async function POST(request) {
       const forced = MODELS.find(m => m.id === forceModelId) || { id: forceModelId, label: forceModelId, tier: 2 };
       const { res, data } = await callGroq(apiKey, forced.id, clean);
       if (res.ok && data?.choices?.[0]?.message?.content) {
-        return NextResponse.json({
-          content: data.choices[0].message.content,
+        return json({
+          content: normalizeAssistantReply(data.choices[0].message.content),
           model: forced.label, modelId: forced.id, tier: forced.tier, attempts: 1,
         });
       }
@@ -217,13 +249,14 @@ export async function POST(request) {
             autoIndex = (idx + 1) % MODELS.length;
             continue;
           }
-          return NextResponse.json({ error: data?.error?.message || msg }, { status: res.status });
+          return json({ error: data?.error?.message || msg }, { status: res.status });
         }
 
         const content = data?.choices?.[0]?.message?.content || "";
         autoIndex = idx;
-        return NextResponse.json({
-          content, model: model.label, modelId: model.id, tier: model.tier, attempts: i + 1,
+        return json({
+          content: normalizeAssistantReply(content),
+          model: model.label, modelId: model.id, tier: model.tier, attempts: i + 1,
         });
 
       } catch (err) {
@@ -232,13 +265,13 @@ export async function POST(request) {
       }
     }
 
-    return NextResponse.json({
+    return json({
       error: `Semua model sedang sibuk. Coba lagi sebentar. (${lastError})`,
       allLimited: true,
     }, { status: 503 });
 
   } catch (err) {
-    return NextResponse.json({ error: `Server error: ${err.message}` }, { status: 500 });
+    return json({ error: `Server error: ${err.message}` }, { status: 500 });
   }
 }
 
@@ -249,7 +282,7 @@ export async function GET() {
   // GET tidak butuh API key untuk info dasar
   const models = cachedModels || FALLBACK_MODELS;
   const idx = autoIndex % models.length;
-  return NextResponse.json({
+  return json({
     currentModel: models[idx],
     allModels: models,
     total: models.length,

@@ -1,8 +1,14 @@
 import "./globals.css";
 
 export const metadata = {
+  applicationName: "ANAM BACTIAR Chatbot",
   title: "ANAM BACTIAR — AI Chatbot",
   description: "Chatbot AI Powered by Groq — Anam Bactiar",
+  referrer: "strict-origin-when-cross-origin",
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({ children }) {
