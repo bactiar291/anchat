@@ -62,11 +62,25 @@ function WelcomeScreen({ onDone }) {
     <div className="welcome-screen" id="welcomeScreen">
       <div className="welcome-orb" />
       <div className="welcome-badge">Testing Chatbot AI</div>
+      <BrandPrism />
       <h1 className="welcome-title">Welcome<em>ANAM BACTIAR</em></h1>
       <p className="welcome-subtitle">AI Powered by Groq · Free Models</p>
       <div className="welcome-dots"><span /><span /><span /></div>
       <div className="welcome-bar-wrap"><div className="welcome-bar-fill" /></div>
       <p className="welcome-status">{STATUS_STEPS[idx]}</p>
+    </div>
+  );
+}
+
+function BrandPrism() {
+  return (
+    <div className="brand-prism" aria-hidden="true">
+      <div className="prism-ring r1" />
+      <div className="prism-ring r2" />
+      <div className="prism-core">
+        <span>A</span>
+        <span>B</span>
+      </div>
     </div>
   );
 }
@@ -167,7 +181,23 @@ function normalizeReplyText(content = "") {
     .map((part) => {
       if (part.startsWith("```")) return part;
       return part
-        .replace(/^\s{0,3}#{1,6}\s+/gm, "")
+        .split("\n")
+        .map((line) => {
+          const trimmed = line.trim();
+          if (/^[-*_]{3,}$/.test(trimmed)) return "";
+          if (/^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(trimmed)) return "";
+          if (/^\|.*\|$/.test(trimmed)) {
+            const cells = trimmed.replace(/^\||\|$/g, "").split("|")
+              .map(cell => cell.trim())
+              .filter(Boolean);
+            if (cells.length > 1) return `• ${cells.join(" · ")}`;
+          }
+          return line
+            .replace(/^\s{0,3}#{1,6}\s+/g, "")
+            .replace(/\*{3,}/g, "")
+            .replace(/[-_]{8,}/g, "");
+        })
+        .join("\n")
         .replace(/[ \t]+\n/g, "\n")
         .replace(/\n{3,}/g, "\n\n");
     })
@@ -608,7 +638,7 @@ export default function Page() {
 
               {messages.length === 0 && !aiPhase && (
                 <div className="chat-welcome">
-                  <div className="chat-welcome-icon">AB</div>
+                  <BrandPrism />
                   <h2>Mulai dengan satu pertanyaan tajam.</h2>
                   <p>Balasan dibuat ringkas, rapi, dan minim heading markdown berlebihan.</p>
                   <div className="quick-prompts">

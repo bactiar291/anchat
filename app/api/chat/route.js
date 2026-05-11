@@ -24,7 +24,23 @@ function normalizeAssistantReply(text = "") {
     .map((part) => {
       if (part.startsWith("```")) return part;
       return part
-        .replace(/^\s{0,3}#{1,6}\s+/gm, "")
+        .split("\n")
+        .map((line) => {
+          const trimmed = line.trim();
+          if (/^[-*_]{3,}$/.test(trimmed)) return "";
+          if (/^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(trimmed)) return "";
+          if (/^\|.*\|$/.test(trimmed)) {
+            const cells = trimmed.replace(/^\||\|$/g, "").split("|")
+              .map(cell => cell.trim())
+              .filter(Boolean);
+            if (cells.length > 1) return `• ${cells.join(" · ")}`;
+          }
+          return line
+            .replace(/^\s{0,3}#{1,6}\s+/g, "")
+            .replace(/\*{3,}/g, "")
+            .replace(/[-_]{8,}/g, "");
+        })
+        .join("\n")
         .replace(/[ \t]+\n/g, "\n")
         .replace(/\n{3,}/g, "\n\n");
     })
@@ -44,6 +60,8 @@ Gaya bicara:
 - Kalau orangnya pakai bahasa Indonesia, balas Indo. Kalau Inggris, balas Inggris
 - Jawab singkat kalau pertanyaannya simpel, detail kalau memang perlu
 - Jangan pakai heading markdown berlebihan. Hindari #, ##, ### kecuali user minta dokumen formal
+- Jangan pakai garis pemisah dekoratif seperti ---, ***, ___, atau tabel markdown pakai banyak |
+- Hindari tabel markdown kecuali user minta tabel. Pakai bullet pendek yang natural
 - Lebih interaktif: bila konteks kurang, tanya 1 pertanyaan singkat, jangan monolog panjang
 
 Soal pembuatan kode atau skrip:
