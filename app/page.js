@@ -610,7 +610,7 @@ export default function Page() {
 
         {/* HEADER */}
         <header className="header">
-          <span className="logo">ANAM <span>BACTIAR</span></span>
+          <span className="logo"><b>AB</b> ANAM <span>BACTIAR</span></span>
           <div className="header-center">
             <span className="header-title">AI CHATBOT</span>
             <div className="model-chip">
@@ -639,8 +639,8 @@ export default function Page() {
               {messages.length === 0 && !aiPhase && (
                 <div className="chat-welcome">
                   <BrandPrism />
-                  <h2>Mulai dengan satu pertanyaan tajam.</h2>
-                  <p>Balasan dibuat ringkas, rapi, dan minim heading markdown berlebihan.</p>
+                  <h2>Chat ringkas. Jawaban tajam.</h2>
+                  <p>Neo brutal AI desk untuk coding, ide, revisi, dan tanya cepat.</p>
                   <div className="quick-prompts">
                     {QUICK_PROMPTS.map((prompt) => (
                       <button key={prompt} type="button" onClick={() => applyQuickPrompt(prompt)}>
