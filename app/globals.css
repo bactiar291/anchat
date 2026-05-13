@@ -1699,3 +1699,143 @@ body::after {
     box-shadow: none;
   }
 }
+
+/* Blue readability pass */
+:root {
+  --blue: #2f6fed;
+  --blue2: #6fb6ff;
+  --blue3: #dceeff;
+  --surface: #f8fbff;
+  --card-bg: #f8fbff;
+  --surface2: #dceeff;
+  --surface3: #a9cdf4;
+  --ai-color: #164a9f;
+  --ai-bg: rgba(47,111,237,.14);
+  --gold: #b46422;
+  --gold2: #d99b35;
+  --user-bg: #ffe3a3;
+  --input-bg: #fbfdff;
+}
+
+.light {
+  --surface: #fbfdff;
+  --card-bg: #fbfdff;
+  --surface2: #dceeff;
+  --surface3: #b8d7f7;
+  --ai-color: #123f8b;
+  --ai-bg: rgba(47,111,237,.12);
+  --input-bg: #fbfdff;
+}
+
+body {
+  background:
+    linear-gradient(90deg, rgba(11,9,8,.1) 1px, transparent 1px),
+    linear-gradient(rgba(11,9,8,.1) 1px, transparent 1px),
+    linear-gradient(135deg, #f1e1bd 0%, #79aeea 46%, #2f6fed 100%);
+}
+
+.header,
+.input-area {
+  background: rgba(248,251,255,.96);
+}
+.light .header,
+.light .input-area {
+  background: rgba(251,253,255,.98);
+}
+
+.logo b,
+.prism-core,
+.send-btn {
+  background: linear-gradient(135deg, #ffe3a3 0%, var(--blue2) 55%, var(--blue) 100%);
+}
+.logo span,
+.header-title,
+.model-chip-text,
+.sel-tier,
+.opt-check,
+.code-lang,
+.cursor-blink {
+  color: var(--blue);
+}
+.model-chip-dot,
+.sel-dot {
+  background: var(--blue) !important;
+  box-shadow: 0 0 0 3px rgba(47,111,237,.18) !important;
+}
+
+.chat-welcome {
+  background:
+    linear-gradient(135deg, rgba(111,182,255,.34), transparent 58%),
+    var(--surface);
+}
+.chat-welcome h2 {
+  text-shadow: 3px 3px 0 var(--blue2);
+}
+.quick-prompts button:hover,
+.model-opt.active,
+.model-opt:hover {
+  background: var(--blue3);
+}
+
+.msg.ai .msg-avatar {
+  background: var(--blue2);
+}
+.msg.ai .msg-bubble {
+  background:
+    linear-gradient(135deg, rgba(220,238,255,.82), rgba(248,251,255,.96)),
+    var(--surface);
+  color: #111827;
+}
+.msg.ai .msg-bubble::before {
+  background: var(--blue);
+}
+.msg.user .msg-bubble {
+  background: linear-gradient(135deg, #ffe3a3, #fff6d8);
+  color: #111827;
+}
+.msg-text {
+  color: #111827;
+  font-weight: 650;
+}
+.msg-content-body {
+  color: #111827;
+}
+
+.code-block-wrap {
+  background: #07172f;
+  border-color: var(--border);
+}
+.dark .code-block-wrap,
+.light .code-block-wrap {
+  background: #07172f;
+  border-color: var(--border);
+}
+.code-block-header {
+  background: #0d2b5c;
+  color: #f8fbff;
+}
+.code-block {
+  background: #07172f;
+  color: #e8f3ff;
+}
+.code-action-btn,
+.artifact-action-btn {
+  background: var(--blue3);
+  border: 2px solid var(--border);
+  color: #111827;
+}
+.artifact-action-btn.artifact-btn {
+  color: #0d2b5c;
+  border-color: var(--border);
+  background: var(--blue3);
+}
+
+.input-box:focus {
+  box-shadow: 5px 5px 0 var(--blue);
+}
+.send-btn:hover {
+  background: var(--blue2);
+}
+.main-layout::after {
+  background: rgba(47,111,237,.2);
+}
