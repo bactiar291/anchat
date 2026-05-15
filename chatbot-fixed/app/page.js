@@ -97,6 +97,12 @@ export default function Page() {
   const chatEndRef = useRef(null);
   const textareaRef = useRef(null);
 
+  const focusInput = useCallback(() => {
+    requestAnimationFrame(() => {
+      textareaRef.current?.focus();
+    });
+  }, []);
+
   // Fetch model saat ini dari API
   useEffect(() => {
     fetch("/api/chat")
@@ -114,6 +120,10 @@ export default function Page() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  useEffect(() => {
+    if (!loading && !showWelcome) focusInput();
+  }, [loading, showWelcome, messages.length, focusInput]);
 
   const handleWelcomeDone = useCallback(() => {
     setWelFade(true);
@@ -152,6 +162,7 @@ export default function Page() {
 
     // Reset textarea height
     if (textareaRef.current) textareaRef.current.style.height = "auto";
+    focusInput();
 
     // Build messages array untuk API
     // ✅ PENTING: role "ai" (UI internal) → "assistant" (standar OpenAI/Groq)
@@ -214,7 +225,7 @@ export default function Page() {
     } finally {
       setLoading(false);
     }
-  }, [input, loading, messages, currentModel]);
+  }, [input, loading, messages, currentModel, focusInput]);
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -349,6 +360,7 @@ export default function Page() {
               />
               <button
                 className="send-btn"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={sendMessage}
                 disabled={!input.trim() || loading}
                 title="Kirim pesan"

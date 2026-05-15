@@ -430,6 +430,12 @@ export default function Page() {
   const chatEndRef = useRef(null);
   const textareaRef = useRef(null);
 
+  const focusInput = useCallback(() => {
+    requestAnimationFrame(() => {
+      textareaRef.current?.focus();
+    });
+  }, []);
+
   useEffect(() => {
     try {
       if (sessionStorage.getItem(WELCOME_SEEN_KEY) === "1") setShowWelcome(false);
@@ -449,6 +455,10 @@ export default function Page() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, aiPhase]);
+
+  useEffect(() => {
+    if (!loading && !showWelcome && editingIdx === null) focusInput();
+  }, [loading, showWelcome, editingIdx, messages.length, focusInput]);
 
   const handleWelcomeDone = useCallback(() => {
     try { sessionStorage.setItem(WELCOME_SEEN_KEY, "1"); } catch {}
@@ -514,6 +524,7 @@ export default function Page() {
     setMessages(newMessages);
     setInput("");
     if (textareaRef.current) textareaRef.current.style.height = "auto";
+    focusInput();
 
     const result = await sendToAPI(newMessages);
     setMessages(p => [...p, {
@@ -524,7 +535,7 @@ export default function Page() {
       tier: result.tier,
       isError: !!result.error,
     }]);
-  }, [input, loading, messages, sendToAPI]);
+  }, [input, loading, messages, sendToAPI, focusInput]);
 
   // ── Edit & submit ulang pesan
   const submitEdit = useCallback(async (idx) => {
@@ -754,7 +765,7 @@ export default function Page() {
                 rows={1}
                 disabled={loading}
               />
-              <button className="send-btn" onClick={sendMessage} disabled={!input.trim() || loading}>
+              <button className="send-btn" onMouseDown={(e) => e.preventDefault()} onClick={sendMessage} disabled={!input.trim() || loading}>
                 <SendIcon />
               </button>
             </div>
