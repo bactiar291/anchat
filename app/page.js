@@ -13,7 +13,7 @@ const MODELS_DEFAULT = [
 ];
 let MODELS = [...MODELS_DEFAULT];
 
-const TIER_COLOR = { 1: "#22c55e", 2: "#eab308", 3: "#ef4444" };
+const TIER_COLOR = { 1: "#00ff88", 2: "#ffcc00", 3: "#ff5533" };
 const TIER_LABEL = { 1: "Cepat", 2: "Kuat", 3: "Pro" };
 
 const STATUS_STEPS = [
@@ -61,10 +61,10 @@ function WelcomeScreen({ onDone }) {
   return (
     <div className="welcome-screen" id="welcomeScreen">
       <div className="welcome-orb" />
-      <div className="welcome-badge">Testing Chatbot AI</div>
+      <div className="welcome-badge">ANCHAT TERMINAL</div>
       <BrandPrism />
-      <h1 className="welcome-title">Welcome<em>ANAM BACTIAR</em></h1>
-      <p className="welcome-subtitle">AI Powered by Groq · Free Models</p>
+      <h1 className="welcome-title">root@anchat<em>ANAM BACTIAR</em></h1>
+      <p className="welcome-subtitle">Groq link established · secure console ready</p>
       <div className="welcome-dots"><span /><span /><span /></div>
       <div className="welcome-bar-wrap"><div className="welcome-bar-fill" /></div>
       <p className="welcome-status">{STATUS_STEPS[idx]}</p>
@@ -610,9 +610,14 @@ export default function Page() {
 
         {/* HEADER */}
         <header className="header">
+          <div className="traffic-light-dots" aria-hidden="true">
+            <span className="dot-red" />
+            <span className="dot-yellow" />
+            <span className="dot-green" />
+          </div>
           <span className="logo"><b>AB</b> ANAM <span>BACTIAR</span></span>
           <div className="header-center">
-            <span className="header-title">AI CHATBOT</span>
+            <span className="header-title">HACKER TERMINAL</span>
             <div className="model-chip">
               <div className="model-chip-dot" style={{ background: TIER_COLOR[displayTier], boxShadow: `0 0 6px ${TIER_COLOR[displayTier]}` }} />
               <span className="model-chip-text">{displayModel}</span>
@@ -639,8 +644,8 @@ export default function Page() {
               {messages.length === 0 && !aiPhase && (
                 <div className="chat-welcome">
                   <BrandPrism />
-                  <h2>Chat ringkas. Jawaban tajam.</h2>
-                  <p>Neo brutal AI desk untuk coding, ide, revisi, dan tanya cepat.</p>
+                  <h2>Console ready.</h2>
+                  <p>Prompt cepat untuk coding, riset, revisi, dan eksekusi ide.</p>
                   <div className="quick-prompts">
                     {QUICK_PROMPTS.map((prompt) => (
                       <button key={prompt} type="button" onClick={() => applyQuickPrompt(prompt)}>

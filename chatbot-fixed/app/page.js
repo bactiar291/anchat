@@ -26,12 +26,12 @@ function WelcomeScreen({ onDone }) {
   return (
     <div className="welcome-screen" id="welcomeScreen">
       <div className="welcome-orb" />
-      <div className="welcome-badge">Testing Chatbot AI</div>
+      <div className="welcome-badge">ANCHAT TERMINAL</div>
       <h1 className="welcome-title">
-        Welcome
+        root@anchat
         <em>ANAM BACTIAR</em>
       </h1>
-      <p className="welcome-subtitle">AI Powered by Groq · Free Models</p>
+      <p className="welcome-subtitle">Groq link established · secure console ready</p>
       <div className="welcome-dots">
         <span /><span /><span />
       </div>
@@ -248,10 +248,15 @@ export default function Page() {
 
         {/* HEADER */}
         <header className="header">
+          <div className="traffic-light-dots" aria-hidden="true">
+            <span className="dot-red" />
+            <span className="dot-yellow" />
+            <span className="dot-green" />
+          </div>
           <span className="logo">ANAM <span>BACTIAR</span></span>
 
           <div className="header-center">
-              <span className="header-title">AI CHATBOT</span>
+              <span className="header-title">HACKER TERMINAL</span>
               <div className={`model-chip${modelChanging ? " changing" : ""}`}>
                 <div className={`model-chip-dot tier-${currentTier}`} />
                 <span className="model-chip-text">{currentModel}</span>
@@ -273,9 +278,9 @@ export default function Page() {
 
             {messages.length === 0 && !loading && (
               <div className="chat-welcome">
-                <div className="chat-welcome-icon">🤖</div>
-                <h2>Halo! Ada yang bisa saya bantu?</h2>
-                <p>Tanyakan apa saja — saya siap menjawab dengan teknologi AI Groq.</p>
+                <div className="chat-welcome-icon">AI</div>
+                <h2>Console ready.</h2>
+                <p>Prompt cepat untuk coding, riset, revisi, dan eksekusi ide.</p>
               </div>
             )}
 
